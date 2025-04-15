@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
@@ -10,7 +10,8 @@ import {
   ChefHat, 
   Settings, 
   Menu, 
-  X 
+  X,
+  PlusCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const isMobile = useIsMobile();
+  const location = useLocation();
   
   // Auto-close sidebar on mobile
   useEffect(() => {
@@ -28,6 +30,13 @@ export function Sidebar() {
       setIsOpen(true);
     }
   }, [isMobile]);
+
+  // Close sidebar when navigating on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -46,10 +55,10 @@ export function Sidebar() {
     <>
       {/* Mobile Toggle Button */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        className="fixed top-4 left-4 z-50 lg:hidden shadow-md"
         aria-label="Toggle sidebar"
       >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -58,7 +67,7 @@ export function Sidebar() {
       {/* Overlay for mobile when sidebar is open */}
       {isMobile && isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -84,29 +93,56 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4">
+          <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-none">
             <ul className="space-y-2">
-              {sidebarItems.map((item) => (
+              {sidebarItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
                 <li key={item.name}>
                   <Link 
                     to={item.path}
-                    className="flex items-center px-2 py-2 rounded-lg hover:bg-sidebar-accent transition-colors group"
+                    className={cn(
+                      "flex items-center px-2 py-2 rounded-lg transition-colors group",
+                      isActive 
+                        ? "bg-sidebar-accent text-coral" 
+                        : "hover:bg-sidebar-accent/50 text-gray-500 hover:text-coral"
+                    )}
                   >
-                    <div className="text-gray-500 group-hover:text-coral transition-colors">
+                    <div className={cn(
+                      "transition-colors",
+                      isActive ? "text-coral" : "text-gray-500 group-hover:text-coral"
+                    )}>
                       {item.icon}
                     </div>
                     <span className={cn(
-                      "ml-3 text-sidebar-foreground group-hover:text-coral transition-all",
-                      (!isOpen || (isMobile && !isOpen)) ? "opacity-0 w-0" : "opacity-100"
+                      "ml-3 transition-all",
+                      (!isOpen || (isMobile && !isOpen)) ? "opacity-0 w-0" : "opacity-100",
+                      isActive ? "font-medium text-coral" : "text-sidebar-foreground group-hover:text-coral"
                     )}>
                       {item.name}
                     </span>
                   </Link>
                 </li>
-              ))}
+              )})}
             </ul>
           </nav>
 
+          {/* Create Recipe Button */}
+          <div className="px-3 py-4">
+            <Link to="/create">
+              <Button className="w-full bg-coral hover:bg-coral/90 text-white" size={isOpen ? "default" : "icon"}>
+                {isOpen ? (
+                  <>
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Create Recipe
+                  </>
+                ) : (
+                  <PlusCircle className="h-5 w-5" />
+                )}
+              </Button>
+            </Link>
+          </div>
+          
           {/* Footer */}
           <div className={cn(
             "p-4 border-t border-sidebar-border flex",

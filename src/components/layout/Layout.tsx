@@ -19,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
       <main className={cn(
         "flex-1 transition-all duration-300 ease-in-out",
         "lg:ml-[280px]", // Default with open sidebar
-        "pt-0 pb-16 md:pb-0", // Mobile bottom padding for navbar
+        "pt-16 pb-16 md:pb-0", // Add top padding to avoid header overlap
       )}>
         <div className="container mx-auto px-4 py-6 md:py-8">
           {children}
